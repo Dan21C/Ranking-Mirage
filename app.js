@@ -203,7 +203,10 @@
   // ---------- Ranking combinado, calculado en el cliente a partir de
   // ranking_by_experience (mismo score que ya usan las pantallas de premio:
   // promedio catalogo+memory_match, 0 si no jugo esa experiencia) ----------
-  function combinedTop5(rows) {
+  // Ranking COMPLETO (no solo Top 5) - si participaron 100 personas ese dia,
+  // devuelve las 100, ordenadas de mayor a menor. El dia sigue filtrando
+  // (es el ranking real de ESE dia, el que decide el premio).
+  function combinedRanking(rows) {
     var byParticipant = {};
     rows.forEach(function (r) {
       var key = r.participant_id;
@@ -214,7 +217,7 @@
     return Object.keys(byParticipant).map(function (k) {
       var p = byParticipant[k];
       return { name: p.name || "Anónimo", score: (p.catalogo + p.memory_match) / 2 };
-    }).sort(function (a, b) { return b.score - a.score; }).slice(0, 5);
+    }).sort(function (a, b) { return b.score - a.score; });
   }
 
   // ---------- Filtro de dia ----------
@@ -247,15 +250,13 @@
     if (!latestStats) return;
     var dayValue = daySelect.value || "__all__";
     var snap = snapshotFor(latestStats, dayValue);
-    // El Top 5 SIEMPRE muestra el mejor promedio de TODA la gente del pais
-    // (no se filtra por el selector de dia) - solo los tiles de arriba
-    // (registros/jugaron/sin registro) respetan el dia elegido.
-    var rankingTitle = "Top 5 · Mejor promedio de toda la gente";
+    // Ranking COMPLETO del dia seleccionado (si jugaron 100 personas ese dia,
+    // se muestran las 100, no solo 5) - sigue siendo el ranking real de ESE
+    // dia, el que decide el premio.
+    var rankingTitle = dayValue === "__all__" ? "Ranking · Mejor promedio de toda la semana" : "Ranking general de ese día";
 
     document.getElementById("countries").innerHTML = COUNTRIES.map(function (code) {
-      var totalsData = (snap.countries && snap.countries[code]) || { totals: {} };
-      var allData = (latestStats.all.countries && latestStats.all.countries[code]) || { top5: [] };
-      var data = { totals: totalsData.totals, top5: allData.top5 };
+      var data = (snap.countries && snap.countries[code]) || { totals: {}, top5: [] };
       return countryCard(code, data, latestStats.registrations && latestStats.registrations[code], rankingTitle);
     }).join("");
     renderTables(snap);
@@ -317,7 +318,7 @@
           var totals = { catalogo: 0, memoryMatch: 0 };
           cRows.forEach(function (r) { if (r.experience === "catalogo") totals.catalogo++; else totals.memoryMatch++; });
           totals.anonymous = anonByCountryDay[c + "|" + day] || 0;
-          countries[c] = { totals: totals, top5: combinedTop5(cRows) };
+          countries[c] = { totals: totals, top5: combinedRanking(cRows) };
         });
         var tables = {};
         COUNTRIES.forEach(function (c) {
@@ -336,7 +337,7 @@
         var totals = { catalogo: 0, memoryMatch: 0 };
         cRows.forEach(function (r) { if (r.experience === "catalogo") totals.catalogo++; else totals.memoryMatch++; });
         totals.anonymous = anonByCountry[c] || 0;
-        allCountries[c] = { totals: totals, top5: combinedTop5(cRows) };
+        allCountries[c] = { totals: totals, top5: combinedRanking(cRows) };
       });
       var allTables = {};
       COUNTRIES.forEach(function (c) {
