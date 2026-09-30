@@ -247,10 +247,15 @@
     if (!latestStats) return;
     var dayValue = daySelect.value || "__all__";
     var snap = snapshotFor(latestStats, dayValue);
-    var rankingTitle = dayValue === "__all__" ? "Top 5 · Mejor promedio de toda la semana" : "Top 5 · Ranking general de ese día";
+    // El Top 5 SIEMPRE muestra el mejor promedio de TODA la gente del pais
+    // (no se filtra por el selector de dia) - solo los tiles de arriba
+    // (registros/jugaron/sin registro) respetan el dia elegido.
+    var rankingTitle = "Top 5 · Mejor promedio de toda la gente";
 
     document.getElementById("countries").innerHTML = COUNTRIES.map(function (code) {
-      var data = (snap.countries && snap.countries[code]) || { totals: {}, top5: [] };
+      var totalsData = (snap.countries && snap.countries[code]) || { totals: {} };
+      var allData = (latestStats.all.countries && latestStats.all.countries[code]) || { top5: [] };
+      var data = { totals: totalsData.totals, top5: allData.top5 };
       return countryCard(code, data, latestStats.registrations && latestStats.registrations[code], rankingTitle);
     }).join("");
     renderTables(snap);
