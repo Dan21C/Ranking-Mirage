@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mirage Pulso</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:ital,wght@0,600;0,700;1,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <div class="masthead">
+      <h1>MIRAGE PULSO</h1>
+      <div class="updated">Actualizado: <b id="updatedAt">—</b></div>
+    </div>
+
+    <div class="day-filter">
+      <label for="day-select">Ver</label>
+      <select id="day-select"></select>
+      <button type="button" class="refresh-btn" id="refresh-btn">
+        <span class="spin">↻</span> <span id="refresh-btn-label">Actualizar</span>
+      </button>
+      <div class="refresh-note">Trae datos en vivo directo de Supabase.</div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn" role="tab" data-tab="resumen" aria-selected="true">Resumen</button>
+      <button class="tab-btn" role="tab" data-tab="tablas" aria-selected="false">Tablas</button>
+      <button class="tab-btn" role="tab" data-tab="graficas" aria-selected="false">Gráficas</button>
+    </div>
+
+    <section class="tab-panel" id="panel-resumen" role="tabpanel">
+      <div class="legend-box">
+        <strong>Cómo leer esto:</strong> "Sin registro" cuenta a quienes tocaron
+        "Continúa sin registro" y jugaron igual — no entran al ranking ni compiten
+        por el premio. El Top 5 es del <strong>ranking general del día
+        seleccionado arriba</strong> (promedio Catálogo + Memory Match) — es el
+        que decide el premio de ESE día; cada día del evento arranca de cero.
+        "Todos los días" suma las jugadas y muestra el mejor promedio de cada
+        persona en toda la semana, solo de referencia (no es un ranking real:
+        el premio siempre es por día).
+      </div>
+      <div class="countries" id="countries"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-tablas" role="tabpanel" hidden>
+      <div class="legend-box">
+        Participaciones del día seleccionado arriba, por país y experiencia,
+        ordenadas de mayor a menor puntaje. La fecha/hora es la del servidor (UTC).
+      </div>
+      <div id="tables-root" class="table-group"></div>
+    </section>
+
+    <section class="tab-panel" id="panel-graficas" role="tabpanel" hidden>
+      <div class="chart-card">
+        <div class="section-title"><h3>Actividad por hora · Colombia vs México</h3></div>
+        <div class="chart-legend">
+          <span><span class="swatch" style="background:var(--series-co)"></span>Colombia</span>
+          <span><span class="swatch" style="background:var(--series-mx)"></span>México</span>
+        </div>
+        <div class="chart-svg-wrap" id="chart-countries"></div>
+      </div>
+      <div class="chart-card">
+        <div class="section-title"><h3>Catálogo vs Memory Match, por hora (ambos países)</h3></div>
+        <div class="chart-legend">
+          <span><span class="swatch" style="background:var(--accent-ice)"></span>Catálogo</span>
+          <span><span class="swatch" style="background:var(--accent)"></span>Memory Match</span>
+        </div>
+        <div class="chart-svg-wrap" id="chart-experiences"></div>
+      </div>
+      <div class="chart-card">
+        <div class="section-title"><h3>Productos más vistos</h3><div class="day" style="color:var(--muted);font-size:12px">Catálogo, por país</div></div>
+        <div id="products-root"></div>
+      </div>
+    </section>
+
+    <footer>Datos en vivo de Supabase</footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

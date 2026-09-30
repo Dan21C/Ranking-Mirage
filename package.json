@@ -1,0 +1,9 @@
+{
+  "name": "mirage-pulso-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Dashboard en vivo de Mirage (Colombia/Mexico) - sitio estatico, sin build, lee directo de Supabase con la publishable key.",
+  "scripts": {
+    "dev": "npx serve ."
+  }
+}
