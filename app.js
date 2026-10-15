@@ -81,14 +81,31 @@
   }
 
   // ---------- Tablas ----------
-  function dataTable(rows) {
+  /**
+   * Hora local del pais (no UTC) en formato 24h "DD/MM HH:mm" - antes
+   * usaba dt.toISOString() crudo, que es UTC y aparecia desfasado varias
+   * horas contra la hora real del evento (ej. una participacion de las 8pm
+   * en Mexico se veia como las 2am del dia siguiente). timeZone depende del
+   * pais de esta fila, igual que hourLabel/TZ_BY_COUNTRY mas abajo.
+   */
+  function formatLocalTime(submittedAt, countryCode) {
+    var dt = new Date(submittedAt);
+    if (isNaN(dt.getTime())) return "";
+    var fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: TZ_BY_COUNTRY[countryCode],
+      month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+    });
+    var parts = {};
+    fmt.formatToParts(dt).forEach(function (p) { parts[p.type] = p.value; });
+    return parts.day + "/" + parts.month + " " + parts.hour + ":" + parts.minute;
+  }
+  function dataTable(rows, countryCode) {
     if (!rows || rows.length === 0) return '<div class="products-empty">Sin participaciones todavía.</div>';
     var body = rows.map(function (r) {
-      var dt = new Date(r.submittedAt);
-      var when = isNaN(dt.getTime()) ? "" : dt.toISOString().slice(0, 16).replace("T", " ");
+      var when = formatLocalTime(r.submittedAt, countryCode);
       return '<tr><td class="name">' + esc(r.name) + '</td><td class="score num">' + Math.round(r.score) + '</td><td class="mono">' + when + '</td></tr>';
     }).join("");
-    return '<div class="table-wrap"><table class="data"><thead><tr><th>Nombre</th><th>Puntaje</th><th>Enviado (UTC)</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+    return '<div class="table-wrap"><table class="data"><thead><tr><th>Nombre</th><th>Puntaje</th><th>Enviado</th></tr></thead><tbody>' + body + '</tbody></table></div>';
   }
   function renderTables(snap) {
     var root = document.getElementById("tables-root");
@@ -97,7 +114,7 @@
       var meta = COUNTRY_META[code];
       EXPERIENCES.forEach(function (exp) {
         var rows = (snap.tables && snap.tables[code + "_" + exp]) || [];
-        html += '<div class="section-title"><h3>' + meta.flag + ' ' + meta.name + ' · ' + EXP_LABEL[exp] + '</h3><div class="day">' + rows.length + ' participaciones</div></div>' + dataTable(rows);
+        html += '<div class="section-title"><h3>' + meta.flag + ' ' + meta.name + ' · ' + EXP_LABEL[exp] + '</h3><div class="day">' + rows.length + ' participaciones</div></div>' + dataTable(rows, code);
       });
     });
     root.innerHTML = html;
@@ -370,7 +387,7 @@
       });
 
       return {
-        updatedAtLabel: new Date().toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" }),
+        updatedAtLabel: new Date().toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short", hour12: false }),
         days: days,
         registrations: registrations,
         byDay: byDay,
