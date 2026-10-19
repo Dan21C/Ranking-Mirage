@@ -26,13 +26,37 @@
     });
   }
 
+  var SUPABASE_PAGE_SIZE = 1000; // tope real del server (db-max-rows) - el Range header no puede pedir mas que esto por respuesta, hay que paginar.
+
+  /**
+   * Pide una pagina de SUPABASE_PAGE_SIZE filas desde `from`. Supabase/PostgREST
+   * limita cada respuesta a 1000 filas sin importar que tan grande sea el
+   * Range pedido (confirmado: Range "0-9999" devuelve Content-Range
+   * "0-999/*"). Bug real: con mas de 1000 participaciones totales, pedir una
+   * sola pagina cortaba justo las mas recientes (las del ultimo dia del
+   * evento quedaban invisibles en el dashboard aunque si existieran en la
+   * base). Aca se sigue pidiendo pagina tras pagina hasta que una devuelva
+   * menos de SUPABASE_PAGE_SIZE filas (esa es la ultima).
+   */
+  function fetchSupabaseAll(path) {
+    function fetchPage(from, acc) {
+      var to = from + SUPABASE_PAGE_SIZE - 1;
+      return fetch(SUPABASE_URL + "/rest/v1/" + path, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, Range: from + "-" + to },
+      }).then(function (res) {
+        if (!res.ok) throw new Error("supabase fetch failed: " + path + " -> " + res.status);
+        return res.json().then(function (rows) {
+          var all = acc.concat(rows);
+          if (rows.length < SUPABASE_PAGE_SIZE) return all;
+          return fetchPage(from + SUPABASE_PAGE_SIZE, all);
+        });
+      });
+    }
+    return fetchPage(0, []);
+  }
+
   function fetchSupabase(path) {
-    return fetch(SUPABASE_URL + "/rest/v1/" + path, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY, Range: "0-9999" },
-    }).then(function (res) {
-      if (!res.ok) throw new Error("supabase fetch failed: " + path + " -> " + res.status);
-      return res.json();
-    });
+    return fetchSupabaseAll(path);
   }
 
   // ---------- Tabs ----------
