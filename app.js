@@ -261,6 +261,33 @@
     }).sort(function (a, b) { return b.score - a.score; });
   }
 
+  // ---------- Descarga CSV (14-16 oct) ----------
+  var DOWNLOAD_DAYS = ["2026-10-14", "2026-10-15", "2026-10-16"];
+  var latestRankingRows = []; // filas crudas de ranking_by_experience, para exportar - se llenan en loadAll().
+
+  function csvEscape(v) {
+    var s = String(v == null ? "" : v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function downloadCsv() {
+    var rows = latestRankingRows.filter(function (r) { return DOWNLOAD_DAYS.indexOf(r.event_day) !== -1; });
+    var header = ["event_day", "country", "experience", "participant_name", "participant_id", "score", "submitted_at"];
+    var lines = [header.join(",")];
+    rows.forEach(function (r) {
+      lines.push([r.event_day, r.country, r.experience, r.participant_name || "", r.participant_id, r.score, r.submitted_at].map(csvEscape).join(","));
+    });
+    var blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "mirage-pulso-14-16-oct.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById("download-btn").addEventListener("click", downloadCsv);
+
   // ---------- Filtro de dia ----------
   var daySelect = document.getElementById("day-select");
   var latestStats = null;
@@ -324,6 +351,7 @@
       fetchSupabase("product_view_counts?order=total.desc"),
     ]).then(function (results) {
       var rankingRows = results[0];
+      latestRankingRows = rankingRows;
       var regCounts = results[1];
       var anonCounts = results[2];
       var productRows = results[3];

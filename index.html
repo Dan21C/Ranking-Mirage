@@ -20,6 +20,7 @@
       <button type="button" class="refresh-btn" id="refresh-btn">
         <span class="spin">↻</span> <span id="refresh-btn-label">Actualizar</span>
       </button>
+      <button type="button" class="refresh-btn" id="download-btn">⬇ Descargar 14-16 oct (CSV)</button>
       <div class="refresh-note">Trae datos en vivo directo de Supabase.</div>
     </div>
 
@@ -47,7 +48,8 @@
     <section class="tab-panel" id="panel-tablas" role="tabpanel" hidden>
       <div class="legend-box">
         Participaciones del día seleccionado arriba, por país y experiencia,
-        ordenadas de mayor a menor puntaje. La fecha/hora es la del servidor (UTC).
+        ordenadas de mayor a menor puntaje. La hora mostrada ya está en la
+        zona local de cada país.
       </div>
       <div id="tables-root" class="table-group"></div>
     </section>
